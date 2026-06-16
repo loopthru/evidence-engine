@@ -13,6 +13,7 @@ class ChangeAction(StrEnum):
     DELETE = "delete"
     NO_OP = "no-op"
     READ = "read"
+    UNKNOWN = "unknown"
 
 
 class ControlCategory(StrEnum):
