@@ -2,6 +2,7 @@ from collections import Counter
 from typing import Any
 
 from evidence_engine import __version__
+from evidence_engine.controls.s3 import build_s3_resource_evidence, group_s3_changes
 from evidence_engine.models import (
     ChangeAction,
     ControlCategory,
@@ -29,7 +30,13 @@ S3_RESOURCE_TYPES = {
 
 def generate_evidence(plan: dict[str, Any]) -> EvidenceReport:
     changes = parse_plan(plan)
-    resources = [_unsupported_resource(change) for change in changes if change.type not in S3_RESOURCE_TYPES]
+    s3_changes = [change for change in changes if change.type in S3_RESOURCE_TYPES]
+    resources = [
+        build_s3_resource_evidence(group) for group in group_s3_changes(s3_changes).values()
+    ]
+    resources.extend(
+        _unsupported_resource(change) for change in changes if change.type not in S3_RESOURCE_TYPES
+    )
     resources.sort(key=lambda resource: resource.address)
 
     return EvidenceReport(
@@ -55,7 +62,10 @@ def _unsupported_resource(change: ParsedResourceChange) -> ResourceEvidence:
                 category=ControlCategory.PLATFORM,
                 status=ControlStatus.UNSUPPORTED,
                 severity=Severity.INFO,
-                message=f"Resource type {change.type} is observed but not evaluated by this engine version.",
+                message=(
+                    f"Resource type {change.type} is observed but not evaluated "
+                    "by this engine version."
+                ),
                 evidence=EvidencePointer(
                     path=f"resource_changes[{change.index}]",
                     before=change.before,
