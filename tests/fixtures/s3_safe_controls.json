@@ -1,0 +1,123 @@
+{
+  "format_version": "1.2",
+  "resource_changes": [
+    {
+      "address": "aws_s3_bucket.customer_data",
+      "type": "aws_s3_bucket",
+      "name": "customer_data",
+      "provider_name": "registry.terraform.io/hashicorp/aws",
+      "change": {
+        "actions": [
+          "create"
+        ],
+        "before": null,
+        "after": {
+          "bucket": "customer-data-prod"
+        }
+      }
+    },
+    {
+      "address": "aws_s3_bucket_server_side_encryption_configuration.customer_data",
+      "type": "aws_s3_bucket_server_side_encryption_configuration",
+      "name": "customer_data",
+      "provider_name": "registry.terraform.io/hashicorp/aws",
+      "change": {
+        "actions": [
+          "create"
+        ],
+        "before": null,
+        "after": {
+          "bucket": "customer-data-prod",
+          "rule": [
+            {
+              "apply_server_side_encryption_by_default": [
+                {
+                  "sse_algorithm": "AES256"
+                }
+              ]
+            }
+          ]
+        }
+      }
+    },
+    {
+      "address": "aws_s3_bucket_public_access_block.customer_data",
+      "type": "aws_s3_bucket_public_access_block",
+      "name": "customer_data",
+      "provider_name": "registry.terraform.io/hashicorp/aws",
+      "change": {
+        "actions": [
+          "create"
+        ],
+        "before": null,
+        "after": {
+          "bucket": "customer-data-prod",
+          "block_public_acls": true,
+          "block_public_policy": true,
+          "ignore_public_acls": true,
+          "restrict_public_buckets": true
+        }
+      }
+    },
+    {
+      "address": "aws_s3_bucket_versioning.customer_data",
+      "type": "aws_s3_bucket_versioning",
+      "name": "customer_data",
+      "provider_name": "registry.terraform.io/hashicorp/aws",
+      "change": {
+        "actions": [
+          "create"
+        ],
+        "before": null,
+        "after": {
+          "bucket": "customer-data-prod",
+          "versioning_configuration": [
+            {
+              "status": "Enabled"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "address": "aws_s3_bucket_lifecycle_configuration.customer_data",
+      "type": "aws_s3_bucket_lifecycle_configuration",
+      "name": "customer_data",
+      "provider_name": "registry.terraform.io/hashicorp/aws",
+      "change": {
+        "actions": [
+          "create"
+        ],
+        "before": null,
+        "after": {
+          "bucket": "customer-data-prod",
+          "rule": [
+            {
+              "transition": [
+                {
+                  "storage_class": "STANDARD_IA"
+                }
+              ]
+            }
+          ]
+        }
+      }
+    },
+    {
+      "address": "aws_s3_bucket_policy.customer_data",
+      "type": "aws_s3_bucket_policy",
+      "name": "customer_data",
+      "provider_name": "registry.terraform.io/hashicorp/aws",
+      "change": {
+        "actions": [
+          "create"
+        ],
+        "before": null,
+        "after": {
+          "bucket": "customer-data-prod",
+          "policy": "{\"Statement\":[{\"Effect\":\"Allow\",\"Principal\":{\"AWS\":\"arn:aws:iam::123456789012:root\"},\"Action\":\"s3:GetObject\",\"Resource\":\"arn:aws:s3:::customer-data-prod/*\"}]}"
+        }
+      }
+    }
+  ]
+}

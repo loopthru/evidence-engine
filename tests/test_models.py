@@ -43,7 +43,9 @@ def test_evidence_report_serializes_resource_first_shape():
                         category=ControlCategory.SECURITY,
                         status=ControlStatus.MISSING,
                         severity=Severity.HIGH,
-                        message="Default bucket encryption is not configured in the proposed state.",
+                        message=(
+                            "Default bucket encryption is not configured in the proposed state."
+                        ),
                         evidence=EvidencePointer(
                             source="terraform_plan",
                             path="resource_changes[0].change.after.server_side_encryption_configuration",

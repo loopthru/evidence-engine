@@ -1,0 +1,36 @@
+{
+  "format_version": "1.2",
+  "resource_changes": [
+    {
+      "address": "aws_s3_bucket.customer_data",
+      "type": "aws_s3_bucket",
+      "name": "customer_data",
+      "provider_name": "registry.terraform.io/hashicorp/aws",
+      "change": {
+        "actions": [
+          "create"
+        ],
+        "before": null,
+        "after": {
+          "bucket": "customer-data-prod"
+        }
+      }
+    },
+    {
+      "address": "aws_s3_bucket_policy.customer_data",
+      "type": "aws_s3_bucket_policy",
+      "name": "customer_data",
+      "provider_name": "registry.terraform.io/hashicorp/aws",
+      "change": {
+        "actions": [
+          "create"
+        ],
+        "before": null,
+        "after": {
+          "bucket": "customer-data-prod",
+          "policy": "{\"Statement\":[{\"Effect\":\"Allow\",\"Principal\":\"*\",\"Action\":\"s3:*\",\"Resource\":\"*\"}]}"
+        }
+      }
+    }
+  ]
+}

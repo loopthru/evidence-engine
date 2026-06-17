@@ -21,7 +21,9 @@ class ParsedResourceChange:
 def parse_plan(plan: dict[str, Any]) -> list[ParsedResourceChange]:
     resource_changes = plan.get("resource_changes")
     if not isinstance(resource_changes, list):
-        raise InvalidTerraformPlanError("Terraform plan JSON must include a resource_changes array.")
+        raise InvalidTerraformPlanError(
+            "Terraform plan JSON must include a resource_changes array."
+        )
 
     parsed: list[ParsedResourceChange] = []
     for index, resource_change in enumerate(resource_changes):
@@ -30,7 +32,9 @@ def parse_plan(plan: dict[str, Any]) -> list[ParsedResourceChange]:
 
         change = resource_change.get("change")
         if not isinstance(change, dict):
-            raise InvalidTerraformPlanError(f"resource_changes[{index}] must include a change object.")
+            raise InvalidTerraformPlanError(
+                f"resource_changes[{index}] must include a change object."
+            )
 
         address = _required_string(resource_change, "address", index)
         resource_type = _required_string(resource_change, "type", index)
@@ -73,5 +77,7 @@ def _provider_short_name(provider_name: Any) -> str | None:
 def _required_string(resource_change: dict[str, Any], field: str, index: int) -> str:
     value = resource_change.get(field)
     if not isinstance(value, str) or not value:
-        raise InvalidTerraformPlanError(f"resource_changes[{index}].{field} must be a non-empty string.")
+        raise InvalidTerraformPlanError(
+            f"resource_changes[{index}].{field} must be a non-empty string."
+        )
     return value
