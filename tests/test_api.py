@@ -3,7 +3,6 @@ from fastapi.testclient import TestClient
 from evidence_engine import __version__
 from evidence_engine.api import app
 
-
 client = TestClient(app)
 
 

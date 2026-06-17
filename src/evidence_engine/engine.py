@@ -17,7 +17,6 @@ from evidence_engine.models import (
 )
 from evidence_engine.plan_parser import ParsedResourceChange, parse_plan
 
-
 S3_RESOURCE_TYPES = {
     "aws_s3_bucket",
     "aws_s3_bucket_server_side_encryption_configuration",

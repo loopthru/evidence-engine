@@ -5,7 +5,6 @@ from typer.testing import CliRunner
 
 from evidence_engine.cli import app
 
-
 runner = CliRunner()
 
 

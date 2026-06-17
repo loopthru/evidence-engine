@@ -7,7 +7,6 @@ from evidence_engine import __version__
 from evidence_engine.engine import generate_evidence
 from evidence_engine.exceptions import InvalidTerraformPlanError
 
-
 app = FastAPI(title="LoopThru Evidence Engine", version=__version__)
 
 

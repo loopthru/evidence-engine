@@ -7,7 +7,6 @@ import typer
 from evidence_engine.engine import generate_evidence
 from evidence_engine.exceptions import InvalidTerraformPlanError
 
-
 app = typer.Typer(no_args_is_help=True)
 
 

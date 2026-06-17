@@ -3,7 +3,6 @@ from pathlib import Path
 
 from evidence_engine.engine import generate_evidence
 
-
 FIXTURES_DIR = Path(__file__).parent / "fixtures"
 
 
