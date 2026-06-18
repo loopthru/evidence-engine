@@ -45,6 +45,19 @@ def test_health_endpoint_returns_engine_version():
     }
 
 
+def test_cors_allows_local_vite_frontend_preflight():
+    response = client.options(
+        "/v1/evidence/terraform-plan",
+        headers={
+            "Origin": "http://localhost:5173",
+            "Access-Control-Request-Method": "POST",
+        },
+    )
+
+    assert response.status_code == 200
+    assert response.headers["access-control-allow-origin"] == "http://localhost:5173"
+
+
 def test_terraform_plan_endpoint_handler_is_async():
     assert inspect.iscoroutinefunction(terraform_plan_evidence)
 
