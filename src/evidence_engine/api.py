@@ -3,6 +3,7 @@ from uuid import UUID
 
 import httpx
 from fastapi import BackgroundTasks, FastAPI, HTTPException, Request
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -15,6 +16,16 @@ from evidence_engine.engine import generate_evidence
 from evidence_engine.exceptions import InvalidTerraformPlanError
 
 app = FastAPI(title="LoopThru Evidence Engine", version=__version__)
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "http://127.0.0.1:5173",
+        "http://localhost:5173",
+        "https://loopthru-web.onrender.com",
+    ],
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 review_repository = ReviewRepository()
 BAND_REVIEW_URL = "https://band-of-agents.onrender.com/review"
 
