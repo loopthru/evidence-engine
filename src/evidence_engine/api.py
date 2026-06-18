@@ -72,6 +72,31 @@ async def terraform_plan_evidence(
     }
 
 
+@app.get("/v1/evidence/status/{session_uid}")
+def evidence_status(session_uid: UUID) -> dict[str, Any]:
+    try:
+        review = review_repository.get_status_by_session_uid(session_uid)
+    except DatabaseConfigurationError as exc:
+        raise HTTPException(status_code=500, detail=str(exc)) from exc
+
+    if review is None:
+        raise HTTPException(status_code=404, detail="Review not found.")
+
+    response: dict[str, Any] = {
+        "session_uid": str(review.session_uid),
+        "status": review.status,
+    }
+    if review.status == "agents_running":
+        response["agents"] = [
+            {"agent": agent.agent, "status": agent.status}
+            for agent in review.agents
+        ]
+    elif review.status == "summarized":
+        response["summary"] = review.summarizer_output
+
+    return response
+
+
 async def trigger_band_review(session_uid: str) -> None:
     try:
         async with httpx.AsyncClient(timeout=5.0) as client:

@@ -22,6 +22,21 @@ class ReviewRecord:
     status: str
 
 
+@dataclass(frozen=True)
+class AgentStatusRecord:
+    agent: str
+    status: str
+
+
+@dataclass(frozen=True)
+class ReviewStatusRecord:
+    id: UUID
+    session_uid: UUID
+    status: str
+    summarizer_output: Any | None
+    agents: list[AgentStatusRecord]
+
+
 def database_url_from_env() -> str:
     settings = dotenv_values(".env")
     database_url = _setting("DATABASE_URL", settings)
@@ -100,4 +115,41 @@ class ReviewRepository:
             id=row["id"],
             session_uid=row["session_uid"],
             status=row["status"],
+        )
+
+    def get_status_by_session_uid(self, session_uid: UUID) -> ReviewStatusRecord | None:
+        review_sql = """
+            SELECT id, session_uid, status, summarizer_output
+            FROM review
+            WHERE session_uid = %(session_uid)s
+        """
+        agents_sql = """
+            SELECT agent.display_name AS agent, review_status.status
+            FROM review_status
+            JOIN agent ON agent.id = review_status.agent_id
+            WHERE review_status.review_id = %(review_id)s
+            ORDER BY agent.display_name
+        """
+
+        with self._connection_factory() as connection:
+            with connection.cursor() as cursor:
+                cursor.execute(review_sql, {"session_uid": session_uid})
+                row = cursor.fetchone()
+                if row is None:
+                    return None
+
+                agent_rows = []
+                if row["status"] == "agents_running":
+                    cursor.execute(agents_sql, {"review_id": row["id"]})
+                    agent_rows = cursor.fetchall()
+
+        return ReviewStatusRecord(
+            id=row["id"],
+            session_uid=row["session_uid"],
+            status=row["status"],
+            summarizer_output=row["summarizer_output"],
+            agents=[
+                AgentStatusRecord(agent=agent_row["agent"], status=agent_row["status"])
+                for agent_row in agent_rows
+            ],
         )
