@@ -1,9 +1,12 @@
+import inspect
 from uuid import UUID
 
+import anyio
+import httpx
 from fastapi.testclient import TestClient
 
 from evidence_engine import __version__
-from evidence_engine.api import app
+from evidence_engine.api import app, terraform_plan_evidence
 from evidence_engine.db import ReviewRecord
 
 client = TestClient(app)
@@ -36,6 +39,10 @@ def test_health_endpoint_returns_engine_version():
         "engine": "loopthru-evidence-engine",
         "version": __version__,
     }
+
+
+def test_terraform_plan_endpoint_handler_is_async():
+    assert inspect.iscoroutinefunction(terraform_plan_evidence)
 
 
 def test_terraform_plan_endpoint_returns_evidence_report(monkeypatch):
@@ -80,6 +87,27 @@ def test_terraform_plan_endpoint_persists_evidence_report(monkeypatch):
     ]
 
 
+def test_terraform_plan_endpoint_triggers_orchestrator(monkeypatch):
+    repository = FakeReviewRepository()
+    trigger_calls = []
+    monkeypatch.setattr("evidence_engine.api.review_repository", repository)
+    monkeypatch.setattr(
+        "evidence_engine.api.trigger_band_review",
+        lambda session_uid: trigger_calls.append(session_uid),
+    )
+
+    response = client.post(
+        "/v1/evidence/terraform-plan",
+        json={
+            "session_uid": "11111111-1111-1111-1111-111111111111",
+            "terraform_plan": {"resource_changes": []},
+        },
+    )
+
+    assert response.status_code == 200
+    assert trigger_calls == ["11111111-1111-1111-1111-111111111111"]
+
+
 def test_terraform_plan_endpoint_rejects_band_chat_id(monkeypatch):
     repository = FakeReviewRepository()
     monkeypatch.setattr("evidence_engine.api.review_repository", repository)
@@ -114,6 +142,65 @@ def test_terraform_plan_endpoint_rejects_unrecognized_plan_json(monkeypatch):
     assert repository.insert_calls == []
 
 
+def test_terraform_plan_endpoint_does_not_trigger_orchestrator_for_invalid_plan(monkeypatch):
+    repository = FakeReviewRepository()
+    trigger_calls = []
+    monkeypatch.setattr("evidence_engine.api.review_repository", repository)
+    monkeypatch.setattr(
+        "evidence_engine.api.trigger_band_review",
+        lambda session_uid: trigger_calls.append(session_uid),
+    )
+
+    response = client.post(
+        "/v1/evidence/terraform-plan",
+        json={
+            "session_uid": "11111111-1111-1111-1111-111111111111",
+            "terraform_plan": {"hello": "world"},
+        },
+    )
+
+    assert response.status_code == 422
+    assert trigger_calls == []
+
+
+def test_trigger_band_review_posts_session_uid(monkeypatch):
+    post_calls = []
+
+    class FakeAsyncClient:
+        def __init__(self, *, timeout):
+            self.timeout = timeout
+
+        async def __aenter__(self):
+            return self
+
+        async def __aexit__(self, exc_type, exc, traceback):
+            return None
+
+        async def post(self, url, *, json):
+            post_calls.append(
+                {
+                    "url": url,
+                    "json": json,
+                    "timeout": self.timeout,
+                }
+            )
+            return httpx.Response(202, request=httpx.Request("POST", url))
+
+    monkeypatch.setattr("evidence_engine.api.httpx.AsyncClient", FakeAsyncClient)
+
+    from evidence_engine.api import trigger_band_review
+
+    anyio.run(trigger_band_review, "11111111-1111-1111-1111-111111111111")
+
+    assert post_calls == [
+        {
+            "url": "https://band-of-agents.onrender.com/review",
+            "json": {"session_uid": "11111111-1111-1111-1111-111111111111"},
+            "timeout": 5.0,
+        }
+    ]
+
+
 def test_terraform_plan_endpoint_rejects_missing_session_uid():
     response = client.post(
         "/v1/evidence/terraform-plan",
@@ -121,4 +208,3 @@ def test_terraform_plan_endpoint_rejects_missing_session_uid():
     )
 
     assert response.status_code == 422
-
